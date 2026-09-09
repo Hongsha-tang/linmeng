@@ -1,0 +1,838 @@
+/* ============================================================
+   琳萌 Linmeng · web/static/style.css（浅色桌面端 v0.1）
+   规范来源：docs/standard/design-system.md（令牌/信息架构）
+            docs/standard/html-desktop-设计规范v1.1.md（布局与缩放）
+   注：暗色主题按既定计划以本浅色版为基准后续叠加，此处不包含暗色令牌。
+   ============================================================ */
+
+/* ---------- 1. 全局基线 ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; }
+
+/* 分辨率适配（桌面规范）：以 1920px 设计稿为基准，1rem = 100px 设计值。
+   root 字号 = 视口宽度 / 19.2，限幅 0.5–2.0 倍，随窗口宽度等比缩放。 */
+html {
+  font-size: clamp(50px, 5.208333vw, 200px);   /* 1920 基准 → 100px；50px≈0.5x，200px≈2.0x */
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-size: 0.14rem;                          /* 兜底正文 14px@1920 */
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; }
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+
+/* ---------- 2. 设计令牌（design-system.md 配色表） ---------- */
+/* 亮色主题（默认） */
+:root {
+  color-scheme: light;
+  --bg: rgb(255, 248, 240);
+  --surface: #fffdfa;
+  --surface-alt: #f7efe3;
+  --border: #ece1d2;
+  --text-primary: #3a3631;
+  --text-secondary: #6f675c;
+  --text-muted: #a09485;
+  --c-blue: #105fdf;
+  --c-blue-fill: rgba(201, 225, 255, .5);
+  --c-violet: #7e13f0;
+  --c-violet-fill: rgba(228, 208, 255, .5);
+  --ok: #4f9a7a;
+  --warn: #c99242;
+  --danger: #cc5b4f;
+  --c-blue-soft: rgba(16, 95, 223, .10);
+  /* 强调按钮前景 / 弹窗遮罩 / 卡片阴影（两主题分别定义以保证对比度） */
+  --on-accent: #ffffff;
+  --overlay: rgba(70, 55, 30, .35);
+  --shadow-card: 0 2px 12px rgba(90, 70, 40, .08);
+  --shadow-modal: 0 2px 16px rgba(90, 70, 40, .18);
+}
+
+/* 暗色主题：以亮色版为基准，仅替换令牌（design-system.md 暗色列） */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #211e1c;
+    --surface: #2a2623;
+    --surface-alt: #1b1816;
+    --border: #3a352f;
+    --text-primary: #eae4db;
+    --text-secondary: #b5ada1;
+    --text-muted: #857b6e;
+    --c-blue: #5b9cff;
+    --c-blue-fill: rgba(201, 225, 255, .28);
+    --c-violet: #9a4dff;
+    --c-violet-fill: rgba(228, 208, 255, .28);
+    --ok: #6fc69a;
+    --warn: #e0af5f;
+    --danger: #e07a6c;
+    --c-blue-soft: rgba(91, 156, 255, .14);
+    /* 亮蓝底上使用近黑前景保证 WCAG AA 对比 */
+    --on-accent: #1d1a17;
+    --overlay: rgba(0, 0, 0, .55);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, .45);
+    --shadow-modal: 0 2px 18px rgba(0, 0, 0, .6);
+  }
+}
+
+/* 手动主题覆盖（顶栏“主题”按钮）：data-theme 显式指定时优先于系统偏好。
+   选择随 localStorage 持久化，由 index.html 头部脚本在首帧前应用。 */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: rgb(255, 248, 240);
+  --surface: #fffdfa;
+  --surface-alt: #f7efe3;
+  --border: #ece1d2;
+  --text-primary: #3a3631;
+  --text-secondary: #6f675c;
+  --text-muted: #a09485;
+  --c-blue: #105fdf;
+  --c-blue-fill: rgba(201, 225, 255, .5);
+  --c-violet: #7e13f0;
+  --c-violet-fill: rgba(228, 208, 255, .5);
+  --ok: #4f9a7a;
+  --warn: #c99242;
+  --danger: #cc5b4f;
+  --c-blue-soft: rgba(16, 95, 223, .10);
+  --on-accent: #ffffff;
+  --overlay: rgba(70, 55, 30, .35);
+  --shadow-card: 0 2px 12px rgba(90, 70, 40, .08);
+  --shadow-modal: 0 2px 16px rgba(90, 70, 40, .18);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #211e1c;
+  --surface: #2a2623;
+  --surface-alt: #1b1816;
+  --border: #3a352f;
+  --text-primary: #eae4db;
+  --text-secondary: #b5ada1;
+  --text-muted: #857b6e;
+  --c-blue: #5b9cff;
+  --c-blue-fill: rgba(201, 225, 255, .28);
+  --c-violet: #9a4dff;
+  --c-violet-fill: rgba(228, 208, 255, .28);
+  --ok: #6fc69a;
+  --warn: #e0af5f;
+  --danger: #e07a6c;
+  --c-blue-soft: rgba(91, 156, 255, .14);
+  --on-accent: #1d1a17;
+  --overlay: rgba(0, 0, 0, .55);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, .45);
+  --shadow-modal: 0 2px 18px rgba(0, 0, 0, .6);
+}
+
+/* ---------- 3. 页面画布：左右各留白 10%，固定 1080px 基准 ---------- */
+.lm-canvas {
+  display: flex;
+  flex-direction: column;
+  width: 15.36rem;                 /* 1920 × 80% */
+  height: 10.80rem;                /* 1080px 基准，固定高度 */
+  margin: 0 auto;                  /* 两侧各 10% */
+  padding: 0.16rem 0 0.4rem;
+  overflow: hidden;
+}
+
+/* ---------- 4. 顶栏 ---------- */
+.lm-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 0.84rem;
+  height: 0.84rem;
+  padding: 0 0.16rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.08rem;
+  overflow: hidden;
+}
+
+.lm-topbar__left {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.lm-topbar__brand {
+  flex: 0 0 auto;
+  font-size: 0.26rem;
+  font-weight: 700;
+  letter-spacing: 0.01rem;
+  overflow: hidden;
+}
+
+.lm-topbar__meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 0.16rem;
+  font-size: 0.15rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lm-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 0.14rem;
+  font-size: 0.14rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+}
+
+.lm-btn {
+  height: 0.44rem;
+  padding: 0 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.08rem;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
+  font-size: 0.14rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.lm-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.lm-btn:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* ---------- 5. 主体布局 ---------- */
+.lm-main {
+  display: flex;
+  flex: 1 1 0%;
+  min-height: 0;
+  gap: 0.16rem;
+  margin-top: 0.16rem;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* ---- 左栏导航 ---- */
+.lm-nav {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  max-width: 2.5rem;
+  gap: 0.05rem;
+  padding: 0.05rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.08rem;
+  overflow: hidden;
+}
+
+.lm-nav__title {
+  flex: 0 0 auto;
+  padding: 0.06rem 0.06rem 0.02rem;
+  font-size: 0.11rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.lm-nav__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.lm-nav__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 0.56rem;
+  padding: 0.06rem 0.08rem;
+  gap: 0.08rem;
+  border: 1px solid transparent;
+  border-radius: 0.06rem;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.lm-nav__item:hover { background: var(--surface-alt); }
+
+.lm-nav__item.is-active {
+  background: var(--surface-alt);
+  border-color: var(--border);
+  box-shadow: inset 2px 0 0 var(--c-blue);   /* 阴影偏移用 px */
+}
+
+.lm-nav__item:focus-visible { outline: 2px solid var(--c-blue); outline-offset: -2px; }
+
+.lm-nav__text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.lm-nav__name { font-size: 0.14rem; font-weight: 600; }
+
+.lm-nav__metric {
+  font-size: 0.11rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lm-nav__spark {
+  flex: 0 0 auto;
+  width: 0.28rem;
+  height: 0.14rem;
+  overflow: hidden;
+}
+
+.lm-nav__spark svg { display: block; width: 100%; height: 100%; }
+.spark-line, .spark-line2 { fill: none; stroke-width: 1.5; stroke-linecap: round; }
+.spark-line { stroke: var(--c-blue); }
+.spark-line2 { stroke: var(--c-violet); }
+
+/* ---- 右栏 ---- */
+.lm-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.lm-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.08rem;
+  overflow: hidden;
+}
+
+.lm-empty {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.08rem;
+  color: var(--text-muted);
+  font-size: 0.15rem;
+  overflow: hidden;
+}
+
+.lm-empty.is-visible { display: flex; }
+.lm-panel.is-hidden { display: none; }
+
+/* 面板头 */
+.lm-panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  padding: 0.16rem 0.18rem 0.04rem;
+  overflow: hidden;
+}
+
+.lm-panel__name { font-size: 0.22rem; font-weight: 700; }
+
+.lm-panel__hint {
+  font-size: 0.13rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 核心 KPI + 阈值进度条 */
+.lm-kpi {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.16rem;
+  flex: 0 0 auto;
+  padding: 0.08rem 0.18rem 0.04rem;
+  overflow: hidden;
+}
+
+.lm-kpi__value {
+  font-size: 0.5rem;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.lm-kpi__value.is-warn { color: var(--warn); }
+.lm-kpi__value.is-danger { color: var(--danger); }
+
+.lm-kpi__unit { font-size: 0.18rem; color: var(--text-secondary); }
+.lm-kpi__sub {
+  font-size: 0.16rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.lm-kpibar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  flex-basis: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.lm-kpibar__track {
+  flex: 1 1 auto;
+  height: 0.06rem;
+  min-width: 0;
+  border-radius: 0.03rem;
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.lm-kpibar__fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 0.03rem;
+  background: var(--ok);
+  transition: width 0.3s ease-out, background-color 0.3s ease-out;
+}
+
+.lm-kpibar__fill.is-warn { background: var(--warn); }
+.lm-kpibar__fill.is-danger { background: var(--danger); }
+
+.lm-kpibar__pct {
+  flex: 0 0 auto;
+  font-size: 0.13rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* L2 子信息行 */
+.lm-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.12rem 0.24rem;
+  flex: 0 0 auto;
+  padding: 0.06rem 0.18rem;
+  font-size: 0.15rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+}
+
+.lm-sub__item { display: inline-flex; gap: 0.1rem; align-items: baseline; min-width: 0; }
+.lm-sub__label { color: var(--text-muted); }
+.lm-sub__value { color: var(--text-primary); font-weight: 600; }
+
+/* 主曲线区 */
+.lm-curve {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 1.2rem;
+  margin: 0.06rem 0.18rem 0.14rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.06rem;
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.lm-curve--meta {
+  flex: 0 0 0.9rem;
+  border-style: solid;
+}
+
+.lm-curve__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.lm-curve__legend {
+  position: absolute;
+  top: 0.04rem;
+  left: 0.08rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.14rem;
+  padding: 0.02rem 0.06rem;
+  border-radius: 0.04rem;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  font-size: 0.11rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lm-legend__item { display: inline-flex; align-items: center; gap: 0.06rem; }
+.lm-legend__dot { width: 0.12rem; height: 0.02rem; border-radius: 0.01rem; }
+.lm-legend__dot--a { background: var(--c-blue); }
+.lm-legend__dot--b { background: var(--c-violet); }
+
+.lm-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.15rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 曲线绘制类（JavaScript 生成） */
+.l-chart { fill: none; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke; }
+.l-chart--a { stroke: var(--c-blue); }
+.l-chart--b { stroke: var(--c-violet); }
+.l-chart__area { fill: var(--c-blue-fill); }
+.l-chart__area--b { fill: var(--c-violet-fill); }
+.l-sparkpoly { fill: none; stroke-width: 1.5; stroke-linecap: round;
+  stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+
+/* ---------- 6. 明细区（标签-值 行） ---------- */
+.lm-spec {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border);
+  padding: 0.12rem 0.18rem 0.16rem;
+  overflow: hidden;
+}
+
+.lm-spec__toggle {
+  height: 0.32rem;
+  padding: 0 0.14rem;
+  border: 0;
+  border-radius: 0.06rem;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
+  font-size: 0.14rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.lm-spec__toggle:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+
+.lm-spec__body {
+  margin-top: 0.1rem;
+  max-height: 3rem;
+  overflow: auto;
+}
+
+.lm-detailrows {
+  border: 1px solid var(--border);
+  border-radius: 0.06rem;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.lm-detailrow {
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.lm-detailrow + .lm-detailrow { border-top: 1px solid var(--border); }
+
+.lm-detailrow__label {
+  padding: 0.08rem 0.12rem;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 0.14rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lm-detailrow__value {
+  padding: 0.08rem 0.12rem;
+  color: var(--text-primary);
+  font-size: 0.16rem;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- 7. 底部信息栏 ---------- */
+.lm-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.12rem;
+  flex: 0 0 0.56rem;
+  height: 0.56rem;
+  margin-top: 0.16rem;
+  padding: 0 0.16rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.08rem;
+  font-size: 0.12rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+}
+
+.lm-statusbar__group {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.lm-statusbar__group--center { justify-content: center; }
+
+.lm-statusbar__value {
+  color: var(--text-primary);
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lm-statusbar__divider {
+  width: 1px;
+  height: 0.14rem;
+  background: var(--border);
+  flex: 0 0 auto;
+}
+
+.lm-statusbar__state-err { color: var(--danger); }
+
+/* ---------- 9. 修改密码弹窗 ---------- */
+.lm-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;                       /* 弹窗遮罩层 50-99 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay);
+  overflow: hidden;
+}
+
+.lm-modal__card {
+  width: 6rem;
+  max-height: 8rem;
+  padding: 0.3rem 0.36rem 0.26rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.12rem;
+  box-shadow: var(--shadow-modal);
+  overflow: auto;
+}
+
+.lm-modal__title { font-size: 0.2rem; font-weight: 700; margin-bottom: 0.14rem; }
+
+.lm-modal__label {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.14rem;
+  color: var(--text-secondary);
+}
+
+.lm-modal__input {
+  width: 100%;
+  height: 0.44rem;
+  margin-top: 0.06rem;
+  padding: 0 0.14rem;
+  border: 1px solid var(--border);
+  border-radius: 0.07rem;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.15rem;
+  overflow: hidden;
+}
+
+.lm-modal__input:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.lm-modal__err {
+  min-height: 0.34rem;
+  padding-top: 0.1rem;
+  font-size: 0.13rem;
+  color: var(--danger);
+}
+
+.lm-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.12rem;
+  margin-top: 0.1rem;
+}
+
+.lm-modal__btn {
+  height: 0.4rem;
+  padding: 0 0.22rem;
+  border: 1px solid var(--border);
+  border-radius: 0.07rem;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
+  font-size: 0.14rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.lm-modal__btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.lm-modal__btn:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+
+.lm-modal__btn--primary {
+  border-color: transparent;
+  background: var(--c-blue);
+  color: var(--on-accent);
+}
+
+.lm-modal__btn--primary:hover { color: var(--on-accent); filter: brightness(1.06); }
+
+.lm-modal__btn:disabled { opacity: .6; cursor: default; }
+
+.lm-modal__note {
+  margin-top: 0.16rem;
+  font-size: 0.12rem;
+  color: var(--text-muted);
+}
+
+/* 修改配置：模块开关网格 */
+.lm-cfg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.08rem 0.16rem;
+  margin-top: 0.08rem;
+}
+
+.lm-cfg-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+  font-size: 0.15rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.lm-cfg-row input {
+  width: 0.18rem;
+  height: 0.18rem;
+  margin: 0;
+  accent-color: var(--c-blue);
+  cursor: pointer;
+}
+/* ---------- 10. 登录视图 ---------- */
+.lm-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15.36rem;
+  height: 10.80rem;
+  margin: 0 auto;
+  padding: 0.16rem 0 0.4rem;
+  overflow: hidden;
+}
+
+.lm-login__card {
+  width: 5.6rem;
+  padding: 0.4rem 0.44rem 0.36rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.12rem;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.lm-login__brand {
+  font-size: 0.3rem;
+  font-weight: 700;
+  letter-spacing: 0.02rem;
+}
+
+.lm-login__brand span { color: var(--text-secondary); font-weight: 400; font-size: 0.16rem; }
+
+.lm-login__desc {
+  margin-top: 0.06rem;
+  font-size: 0.13rem;
+  color: var(--text-muted);
+}
+
+.lm-login__form { margin-top: 0.28rem; }
+
+.lm-login__label { display: block; font-size: 0.14rem; color: var(--text-secondary); }
+
+.lm-login__input {
+  width: 100%;
+  height: 0.48rem;
+  margin-top: 0.08rem;
+  padding: 0 0.14rem;
+  border: 1px solid var(--border);
+  border-radius: 0.07rem;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.16rem;
+  overflow: hidden;
+}
+
+.lm-login__input:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.lm-login__err {
+  min-height: 0.32rem;
+  padding-top: 0.08rem;
+  font-size: 0.13rem;
+  color: var(--danger);
+}
+
+.lm-login__btn {
+  width: 100%;
+  height: 0.48rem;
+  border: 0;
+  border-radius: 0.07rem;
+  background: var(--c-blue);
+  color: var(--on-accent);
+  font-size: 0.16rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.lm-login__btn:hover { filter: brightness(1.05); }
+.lm-login__btn:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+.lm-login__btn:disabled { opacity: .6; cursor: default; }
+
+.lm-login__foot {
+  margin-top: 0.2rem;
+  text-align: center;
+  font-size: 0.12rem;
+  color: var(--text-muted);
+}

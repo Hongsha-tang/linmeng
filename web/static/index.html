@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="琳萌 Linmeng 是一个基于 Go 语言开发的linux设备简易监控平台。">
+  <meta name="author" content="红糖">
+  <link rel="icon" href="./img/linmeng-1_256x256.ico" type="image/x-icon">
+  <title>琳萌 Linmeng</title>
+  <script>
+    /* 首帧前应用主题：读取 localStorage（linmeng.theme = light|dark），
+       缺失或非法时默认亮色；data-theme 始终显式设置。 */
+    (function () {
+      try {
+        var t = localStorage.getItem('linmeng.theme');
+        if (t !== 'dark') { t = 'light'; }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    /* __LM_CFG_JSON__ 由服务端替换为转义后的配置 JSON 字符串；
+       未经替换（如直接打开文件）时解析失败，app.js 会回退默认值。 */
+    window.__LM_CONFIG_RAW__ = "__LM_CFG_JSON__";
+  </script>
+</head>
+
+<body>
+
+  <!-- ================= 主视图（监控页） ================= -->
+  <div class="lm-canvas" id="dash">
+
+    <!-- 顶栏 -->
+    <header class="lm-topbar">
+      <div class="lm-topbar__left">
+        <span class="lm-topbar__brand">琳萌 Linmeng</span>
+        <span class="lm-topbar__meta" id="topMeta">主机名 · 局域网 IP</span>
+      </div>
+      <div class="lm-topbar__right">
+        <span id="topRefresh">--:--:--</span>
+        <button class="lm-btn" type="button" id="btnLogout" hidden>登出</button>
+        <button class="lm-btn" type="button" id="btnTheme" title="点击切换亮色 / 暗色" hidden>亮色</button>
+        <button class="lm-btn" type="button" id="btnChangePw" hidden>修改密码</button>
+        <button class="lm-btn" type="button" id="btnConfig">修改配置</button>
+      </div>
+    </header>
+
+    <!-- 左栏导航 + 右栏详情 -->
+    <div class="lm-main">
+      <nav class="lm-nav" id="nav" aria-label="模块导航">
+        <div class="lm-nav__title" id="navTitle">模块总览</div>
+        <div class="lm-nav__items" id="navItems"></div>
+      </nav>
+
+      <main class="lm-detail" id="panelWrap">
+        <section class="lm-panel">
+          <div class="lm-panel__head">
+            <h2 class="lm-panel__name" id="panelName">—</h2>
+            <span class="lm-panel__hint" id="panelHint"></span>
+          </div>
+
+          <div class="lm-kpi">
+            <span class="lm-kpi__value" id="kpiValue">—</span>
+            <span class="lm-kpi__unit" id="kpiUnit"></span>
+            <span class="lm-kpi__sub" id="kpiSub"></span>
+            <span class="lm-kpibar" id="kpiBarWrap" hidden>
+              <span class="lm-kpibar__track"><span class="lm-kpibar__fill" id="kpiBar"></span></span>
+              <span class="lm-kpibar__pct" id="kpiBarPct"></span>
+            </span>
+          </div>
+
+          <div class="lm-sub" id="subRow"></div>
+
+          <!-- 主曲线 / 纯信息占位（模块决定形态） -->
+          <div class="lm-curve" id="curveArea">
+            <div class="lm-curve__legend" id="curveLegend">
+              <span class="lm-legend__item"><i class="lm-legend__dot lm-legend__dot--a"></i><span
+                  id="legendA">主</span></span>
+              <span class="lm-legend__item" id="legendBItem" hidden><i
+                  class="lm-legend__dot lm-legend__dot--b"></i><span id="legendB">次</span></span>
+            </div>
+            <svg class="lm-curve__svg" id="mainSvg" viewBox="0 0 100 40" preserveAspectRatio="none"
+              aria-hidden="true"></svg>
+            <span class="lm-placeholder" id="curvePlaceholder" hidden></span>
+          </div>
+
+          <!-- 明细区：系统信息默认展开全部字段；其它模块作 L3 折叠 -->
+          <div class="lm-spec">
+            <button class="lm-spec__toggle" type="button" id="specToggle" aria-expanded="false"
+              aria-controls="specBody">展开规格（L3）</button>
+            <div class="lm-spec__body" id="specBody" hidden>
+              <div class="lm-detailrows" id="specRows" aria-label="详细信息"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="lm-empty" id="emptyState" hidden>暂无可用模块（全部指标已关闭或无数据源）</div>
+      </main>
+    </div>
+
+    <!-- 底部信息栏 -->
+    <footer class="lm-statusbar">
+      <span class="lm-statusbar__group">
+        <span class="lm-statusbar__label">当前模块</span>
+        <span class="lm-statusbar__value" id="statusModule">—</span>
+      </span>
+      <span class="lm-statusbar__group lm-statusbar__group--center">
+        <span class="lm-statusbar__value" id="statusRefresh">最近刷新 --:--:--</span>
+        <span class="lm-statusbar__divider" aria-hidden="true"></span>
+        <span id="statusState">轮询启动中…</span>
+      </span>
+      <span class="lm-statusbar__group">
+        <span id="statusRight">主题：亮色 · 桌面端</span>
+      </span>
+    </footer>
+    <div class="lm-bottom">
+      <hr style="margin: 15px 0; border: 1px solid #dfdddd;">
+      <p style="text-align: center;margin-top: 10px;color: #999;">Linmeng v1.0.0 ·
+        build 2026-09-08 · 作者:<a href="https://space.bilibili.com/433962918?spm_id_from=333.1007.0.0" target="_blank"
+          style="color: #cca981;text-decoration: none;"> 红糖 | Email: Akitalet@163.com</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= 登录视图 ================= -->
+  <main class="lm-login" id="loginView" hidden>
+    <section class="lm-login__card">
+      <h1 class="lm-login__brand">琳萌 <span>Linmeng</span></h1>
+      <p class="lm-login__desc">Linux 系统信息监视器 · 局域网访问</p>
+      <form class="lm-login__form" id="loginForm">
+        <label class="lm-login__label" for="loginPassword">访问密码</label>
+        <input class="lm-login__input" type="password" id="loginPassword" autocomplete="current-password" autofocus>
+        <div class="lm-login__err" id="loginError" role="alert"></div>
+        <button class="lm-login__btn" type="submit" id="loginBtn">登 录</button>
+      </form>
+      <p class="lm-login__foot">会话有效期内无需重复登录</p>
+    </section>
+  </main>
+
+  <!-- ================= 修改密码弹窗 ================= -->
+  <div class="lm-modal" id="pwModal" hidden>
+    <div class="lm-modal__card" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+      <h3 class="lm-modal__title" id="pwTitle">修改登录密码</h3>
+      <label class="lm-modal__label" for="pwOld">原密码</label>
+      <input class="lm-modal__input" type="password" id="pwOld" autocomplete="current-password">
+      <label class="lm-modal__label" for="pwNew">新密码</label>
+      <input class="lm-modal__input" type="password" id="pwNew" autocomplete="new-password">
+      <label class="lm-modal__label" for="pwNew2">确认新密码</label>
+      <input class="lm-modal__input" type="password" id="pwNew2" autocomplete="new-password">
+      <div class="lm-modal__err" id="pwErr" role="alert"></div>
+      <div class="lm-modal__actions">
+        <button class="lm-modal__btn" type="button" id="pwCancel">取消</button>
+        <button class="lm-modal__btn lm-modal__btn--primary" type="button" id="pwSave">保存</button>
+      </div>
+      <p class="lm-modal__note">保存后旧密码立即失效，当前登录会话不受影响。</p>
+    </div>
+  </div>
+
+  <!-- ================= 修改配置弹窗 ================= -->
+  <div class="lm-modal" id="cfgModal" hidden>
+    <div class="lm-modal__card" role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
+      <h3 class="lm-modal__title" id="cfgTitle">修改配置</h3>
+
+      <label class="lm-modal__label" for="cfgSeconds">轮询刷新间隔（秒，1–5 的整数）</label>
+      <input class="lm-modal__input lm-modal__input--num" type="number" id="cfgSeconds" min="1" max="5" step="1"
+        inputmode="numeric">
+
+      <label class="lm-modal__label" for="cfgHistory">曲线保留点数（2–60 的整数）</label>
+      <input class="lm-modal__input lm-modal__input--num" type="number" id="cfgHistory" min="2" max="60" step="1"
+        inputmode="numeric">
+
+      <div class="lm-modal__label">指标模块（关闭后左栏与详情同步隐藏）</div>
+      <div class="lm-cfg-grid">
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgCpu"> CPU</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgMemory"> 内存</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgDisk"> 磁盘</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgNetwork"> 网络</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgHost"> 系统信息</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgGpu"> GPU</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgProc"> 进程</label>
+        <label class="lm-cfg-row"><input type="checkbox" id="cfgFs"> 文件描述符</label>
+      </div>
+
+      <div class="lm-modal__err" id="cfgErr" role="alert"></div>
+      <div class="lm-modal__actions">
+        <button class="lm-modal__btn" type="button" id="cfgCancel">取消</button>
+        <button class="lm-modal__btn lm-modal__btn--primary" type="button" id="cfgSave">保存</button>
+      </div>
+      <p class="lm-modal__note">保存后写入 setting.json 并即时生效；端口等部署级配置需重启后生效，不在此修改。</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+{
+  "refresh_interval_seconds": 2,
+  "history_points": 20,
+  "port": 8002,
+  "listen_host": "0.0.0.0",
+  "auth_enabled": true,
+  "session_ttl_minutes": 120,
+  "enable_cpu": true,
+  "enable_memory": true,
+  "enable_disk": true,
+  "enable_network": true,
+  "enable_host": true,
+  "enable_gpu": true,
+  "enable_proc": true,
+  "enable_fs": true
+}
