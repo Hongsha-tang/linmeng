@@ -1,6 +1,6 @@
 # 琳萌（Linmeng）· Linux 系统信息监视器
 
-琳萌 · linmeng 是一个简易轻量级局域网 Linux 系统信息监视器，用户通过浏览器即可实时查看被监视主机的系统运行与基础信息。核心实体：系统快照、指标项、监视器、会话、配置config。项目主要使用Go语言搭建，前端为内嵌的单页仪表盘，纯局域网、端口 8002，无数据库、极低资源占用。
+琳萌 · linmeng 是一个简易轻量级局域网 Linux 系统信息监视器，拥有终端功能，用户通过浏览器即可实时查看被监视主机的系统运行与基础信息以及操作对应系统。核心实体：系统快照、指标项、监视器、会话、配置config。项目主要使用Go语言搭建，前端为内嵌的单页仪表盘，纯局域网、端口 8002，无数据库、极低资源占用。
 
 ## 特性
 
@@ -27,14 +27,13 @@
 本项目内置了自动安装脚本`install.sh`，通过以下指令可以自动执行安装安装：
 
 ```bash
-# 1. 构建二进制（开发机）
-go build -o linmeng .
+# 放置到目标机（默认监听 0.0.0.0:8002）
+cd 你的目录
+sudo bash install.sh linmeng_v1.1.0 linmeng-cli_v1.1.0
 
-# 2. 放置到目标机（默认监听 0.0.0.0:8002）
-sudo mkdir -p /opt/linmeng && sudo install -m 0755 linmeng /opt/linmeng/linmeng
-
-# 3. 注册并启动 systemd 服务（含开机自启）
-sudo systemctl enable --now linmeng
+# 完成后需要调用指令补充shell_user
+linmeng 3 3
+然后填入你的用户名
 ```
 
 > 访问密码默认为 **`admin123`**，登录后可在页面"修改密码"自定义，或在 `.env` 中设置。
@@ -53,6 +52,7 @@ sudo nano /opt/linmeng/.env  	#AUTH_PASSWORD=你的密码
 sudo cp linmeng.service /etc/systemd/system/linmeng.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now linmeng
+同步添加终端用户名功能，见上方。
 ```
 
 **安装完成后验证：（可选）**
@@ -62,8 +62,8 @@ systemctl status linmeng --no-pager
 ss -tlnp | grep 8002
 curl -i http://127.0.0.1:8002/login
 curl -i http://127.0.0.1:8002/api/system/infolinmeng 7 1                                                
-# linmeng版本 → v1.0.0
-# CLI 版本 → v1.0.0
+# linmeng版本 → v1.1.0
+# CLI 版本 → v1.1.0
 ```
 
 
@@ -114,7 +114,7 @@ linmeng/
 └── web/static/             # 前端页面
 ```
 
-## 声明
+## 其他
 
 - 1.仅限**局域网内**临时监测或验证原型使用，不设 HTTPS、不暴露公网。
 - 2.一次短历史仅保留在前端内存（`setting参数 - history_points` 个快照点，默认 20），用于绘制短期曲线。
@@ -126,4 +126,8 @@ linmeng/
 <p align="center">
   <img src="./images/20260909_1.png" width="750" />
 </p>
-- v1.0.0监控主页面预览
+- v1.1.0监控主页预览
+<p align="center">
+  <img src="./images/2026-09-18.png" width="750" />
+</p>
+- v1.1.0终端页面预览
